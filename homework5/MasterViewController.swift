@@ -16,7 +16,23 @@ class MasterViewController: UITableViewController {
     
     var foods = [Foods]()
     
-    
+    func readPropertyList(){
+        var format = PropertyListSerialization.PropertyListFormat.xml//format of the property list
+        var plistData:[String:AnyObject] = [:]  //our data
+        let plistPath:String? = Bundle.main.path(forResource: "foods", ofType: "plist")!
+        let plistXML = FileManager.default.contents(atPath: plistPath!)!
+        
+        do{
+            plistData = try PropertyListSerialization.propertyList(from: plistXML,
+                                                                             options: .mutableContainersAndLeaves,
+                                                                             format: &format)
+                as! [String:AnyObject]
+        }
+        catch{
+            print("Error reading plist: \(error), format: \(format)")
+        }
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -30,7 +46,7 @@ class MasterViewController: UITableViewController {
             self.detailViewController = (controllers[controllers.count-1] as! UINavigationController).topViewController as? DetailViewController
         }
         
-        if let path = Bundle.main.path(forResource: "details", ofType: "txt") {
+        /*if let path = Bundle.main.path(forResource: "details", ofType: "txt") {
             do {
                 let data = try String(contentsOfFile: path, encoding: .utf8)
                 var details : [String] = data.components(separatedBy: .newlines)
@@ -45,8 +61,21 @@ class MasterViewController: UITableViewController {
             } catch {
                 print(error)
             }
-        }
+         }*/
         
+        let dict = NSDictionary(contentsOfFile: Bundle.main.path(forResource: "foods", ofType: "plist")!)
+        var foodName: String
+        var description: String
+        for (myKey,myValue) in dict! {
+            
+            foodName = (myKey as! String).trimmingCharacters(
+                in: NSCharacterSet.whitespacesAndNewlines
+                )
+            description =  (myValue as! String).trimmingCharacters(
+                in: NSCharacterSet.whitespacesAndNewlines
+                )
+            self.foods.append(Foods(name: foodName , description: description, iconName: foodName))
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
